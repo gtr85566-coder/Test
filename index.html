@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BS Room Finder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f6f8;
+      color: #1a1a2e;
+      min-height: 100vh;
+      padding: 32px 16px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container { width: 100%; max-width: 420px; }
+
+    .header { text-align: center; margin-bottom: 28px; }
+    .title { font-size: 26px; font-weight: 700; color: #1a1a2e; }
+    .credits { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    input {
+      width: 100%;
+      background: #f5f6f8;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      color: #1a1a2e;
+      font-family: 'Inter', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      text-transform: uppercase;
+    }
+
+    input::placeholder { color: #d1d5db; font-size: 16px; letter-spacing: 1px; font-weight: 500; }
+    input:focus { border-color: #1a1a2e; }
+
+    button.main-btn {
+      width: 100%;
+      margin-top: 12px;
+      background: #1a1a2e;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 14px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    button.main-btn:hover { opacity: 0.85; }
+    button.main-btn:active { transform: scale(0.98); }
+
+    .error-msg {
+      color: #ef4444;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .info-row {
+      display: none;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .info-box {
+      flex: 1;
+      background: #f5f6f8;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .info-label { font-size: 10px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .info-val { font-size: 15px; font-weight: 700; color: #1a1a2e; word-break: break-all; }
+
+    .results-card { display: none; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .results-title { font-size: 15px; font-weight: 700; }
+
+    .copy-all-btn {
+      background: #f5f6f8;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      color: #6b7280;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      transition: background 0.2s;
+    }
+
+    .copy-all-btn:hover { background: #e5e7eb; }
+
+    .code-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 440px;
+      overflow-y: auto;
+    }
+
+    .code-list::-webkit-scrollbar { width: 4px; }
+    .code-list::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
+
+    .code-item {
+      display: flex;
+      align-items: center;
+      background: #f5f6f8;
+      border-radius: 10px;
+      padding: 10px 14px;
+      gap: 10px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .code-item:hover { background: #eef0f3; }
+    .code-item.copied { border-color: #22c55e; background: #f0fdf4; }
+
+    .code-num { font-size: 11px; color: #d1d5db; font-weight: 600; min-width: 20px; }
+    .code-val { font-size: 18px; font-weight: 700; letter-spacing: 2px; flex: 1; }
+    .code-id { font-size: 11px; color: #9ca3af; }
+    .copy-icon { font-size: 14px; color: #d1d5db; transition: color 0.2s; }
+    .code-item:hover .copy-icon { color: #6b7280; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #22c55e;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 10px;
+      transition: transform 0.3s ease;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="title">BS Room Finder</div>
+    <div class="credits">tiktok @vankzdh</div>
+  </div>
+
+  <div class="card">
+    <label>Код комнаты</label>
+    <input id="codeInput" type="text" placeholder="XPQR2Y8" maxlength="13" />
+    <button class="main-btn" onclick="generate()">Найти</button>
+    <div class="error-msg" id="errorMsg">Неверный код. Проверьте правильность ввода.</div>
+    <div class="info-row" id="infoRow">
+      <div class="info-box">
+        <div class="info-label">Ваш код</div>
+        <div class="info-val" id="infoCode">—</div>
+      </div>
+      <div class="info-box">
+        <div class="info-label">ID</div>
+        <div class="info-val" id="infoId">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card results-card" id="resultsCard">
+    <div class="results-header">
+      <div class="results-title">50 следующих кодов</div>
+      <button class="copy-all-btn" onclick="copyAll()">Копировать все</button>
+    </div>
+    <div class="code-list" id="codeList"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">Скопировано!</div>
+
+<script>
+  const TEAM_CHARS = "QWERTYUPASDFGHJKLZCVBNM23456789";
+  const TEAM_TAG   = "X";
+
+  function toLong(hiInt, loInt) {
+    return (BigInt(hiInt) << 32n) | (BigInt(loInt) & 0xFFFFFFFFn);
+  }
+  function toLongS(hiInt, loInt) {
+    return (BigInt(hiInt) << 32n) | BigInt(loInt);
+  }
+  function toId(code) {
+    code = code.toUpperCase();
+    if (!code.startsWith(TEAM_TAG)) code = TEAM_TAG + code;
+    if (code.length >= 14) return null;
+    const body = code.substring(1);
+    if (body.length === 0) return 0n;
+    const len = BigInt(TEAM_CHARS.length);
+    let i = 0, unk6 = 0n, unk7 = 0n, unk12 = 0n;
+    do {
+      const idx = BigInt(TEAM_CHARS.indexOf(body[i]));
+      if (idx < 0n) return null;
+      unk12 = unk6 * len + idx;
+      const combined = toLong(Number(unk7 & 0xFFFFFFFFn), Number(unk6 & 0xFFFFFFFFn)) * len + idx;
+      unk7 = combined >> 32n;
+      unk6 = unk12;
+      i++;
+    } while (i < body.length);
+    if (((unk12 & unk7) & 0xFFFFFFFFFFFFFFFFn) !== 0xFFFFFFFFFFFFFFFFn) {
+      const v13 = toLongS(Number(unk7 & 0xFFFFFFFFn), Number(unk12 & 0xFFFFFFFFn)) >> 8n;
+      return toLong(Number(unk6 & 0xFFn), Number(v13 & 0x7FFFFFFFn));
+    }
+    return null;
+  }
+  function convert(id) {
+    const len = BigInt(TEAM_CHARS.length);
+    let tag = '';
+    while (id > 0n) {
+      const ci = Number(id % len);
+      tag = TEAM_CHARS[ci] + tag;
+      id -= BigInt(ci);
+      id /= len;
+    }
+    return tag;
+  }
+  function toCode(id) {
+    const hiInt = Number(id >> 32n) & 0xFFFFFFFF;
+    const loInt = Number(id & 0xFFFFFFFFn);
+    if (hiInt >= 256) return null;
+    const l = toLong(loInt >> 24, (hiInt | (loInt << 8)) & 0xFFFFFFFF);
+    return TEAM_TAG + convert(l);
+  }
+  function generate() {
+    const raw = document.getElementById('codeInput').value.trim().toUpperCase();
+    const input = raw.startsWith(TEAM_TAG) ? raw : TEAM_TAG + raw;
+    const errEl = document.getElementById('errorMsg');
+    errEl.style.display = 'none';
+    const id = toId(input);
+    if (id === null || id < 0n) {
+      errEl.style.display = 'block';
+      document.getElementById('resultsCard').style.display = 'none';
+      document.getElementById('infoRow').style.display = 'none';
+      return;
+    }
+    const check = toCode(id);
+    document.getElementById('infoCode').textContent = check || input;
+    document.getElementById('infoId').textContent = id.toString();
+    document.getElementById('infoRow').style.display = 'flex';
+    const list = document.getElementById('codeList');
+    list.innerHTML = '';
+    for (let i = 1; i <= 50; i++) {
+      const nextId = id + BigInt(i);
+      const nextCode = toCode(nextId);
+      if (!nextCode) continue;
+      const item = document.createElement('div');
+      item.className = 'code-item';
+      item.innerHTML = `<span class="code-num">${i}</span><span class="code-val">${nextCode}</span><span class="code-id">${nextId}</span><span class="copy-icon">⎘</span>`;
+      item.onclick = () => copyCode(nextCode, item);
+      list.appendChild(item);
+    }
+    document.getElementById('resultsCard').style.display = 'block';
+  }
+  function copyCode(code, el) {
+    navigator.clipboard.writeText(code).then(() => {
+      el.classList.add('copied');
+      setTimeout(() => el.classList.remove('copied'), 1200);
+      showToast('Скопировано: ' + code);
+    });
+  }
+  function copyAll() {
+    const codes = Array.from(document.querySelectorAll('.code-val')).map(e => e.textContent).join('\n');
+    navigator.clipboard.writeText(codes).then(() => showToast('Все коды скопированы!'));
+  }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+  document.getElementById('codeInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') generate();
+  });
+</script>
+</body>
+</html>
